@@ -18,7 +18,7 @@ from kinomatch.application.services import utcnow
 from kinomatch.config import get_settings
 from kinomatch.infrastructure.db.session import create_engine, session_factory
 from kinomatch.infrastructure.db.tables import OutboxRow
-from kinomatch.infrastructure.events import Event, RedisEventPublisher
+from kinomatch.infrastructure.events import Event, RedisEventPublisher, redis_client
 
 log = logging.getLogger(__name__)
 
@@ -69,7 +69,7 @@ async def run(factory: async_sessionmaker[AsyncSession], redis: Redis) -> None:
 async def main() -> None:
     settings = get_settings()
     engine = create_engine(settings.database_url)
-    redis = Redis.from_url(settings.redis_url, decode_responses=True)
+    redis = redis_client(settings.redis_url)
     try:
         await run(session_factory(engine), redis)
     finally:

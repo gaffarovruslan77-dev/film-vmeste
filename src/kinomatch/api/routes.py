@@ -6,7 +6,7 @@ from kinomatch.api import schemas
 from kinomatch.api.deps import ContainerDep, UserDep, require_service
 from kinomatch.api.metrics import MATCHES, ROOMS_CREATED, SWIPES
 from kinomatch.domain import errors
-from kinomatch.infrastructure.events import Event, room_stream
+from kinomatch.infrastructure.events import MAX_BLOCK_MS, Event, room_stream
 
 router = APIRouter(prefix="/api/v1")
 
@@ -121,7 +121,7 @@ async def room_events(
     stream, last_id = room_stream(room.code), "$"
     try:
         while True:
-            response: Any = await c.redis.xread({stream: last_id}, block=15_000, count=50)
+            response: Any = await c.redis.xread({stream: last_id}, block=MAX_BLOCK_MS, count=50)
             for _, messages in response:
                 for message_id, fields in messages:
                     last_id = message_id

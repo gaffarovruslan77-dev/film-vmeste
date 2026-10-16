@@ -26,6 +26,7 @@ from kinomatch.infrastructure.events import EVENTS_STREAM, Event
 log = logging.getLogger(__name__)
 
 GROUP = "telegram-bot"
+READ_BLOCK_MS = 5000  # должно быть меньше таймаута сокета Redis (см. infrastructure/events.py)
 DEDUP_TTL = 24 * 3600
 
 
@@ -46,7 +47,7 @@ class EventNotifier:
         while True:
             try:
                 response: Any = await self._redis.xreadgroup(
-                    GROUP, self._consumer, {EVENTS_STREAM: last_id}, count=20, block=5000
+                    GROUP, self._consumer, {EVENTS_STREAM: last_id}, count=20, block=READ_BLOCK_MS
                 )
             except Exception:
                 log.exception("Не удалось прочитать события, повтор через 2 с")

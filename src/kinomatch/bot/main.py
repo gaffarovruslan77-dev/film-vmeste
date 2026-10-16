@@ -14,6 +14,7 @@ from kinomatch.bot.api_client import KinomatchApi
 from kinomatch.bot.handlers import router
 from kinomatch.bot.notifier import EventNotifier
 from kinomatch.config import get_settings
+from kinomatch.infrastructure.events import redis_client
 
 log = logging.getLogger(__name__)
 
@@ -25,7 +26,7 @@ async def main() -> None:
 
     bot = Bot(settings.bot_token, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
     api = KinomatchApi(settings.api_url, settings.service_key)
-    redis = Redis.from_url(settings.redis_url, decode_responses=True)
+    redis = redis_client(settings.redis_url)
 
     # Состояние диалогов (выбор жанров) хранится в Redis — бот без состояния,
     # его можно перезапускать и запускать в нескольких экземплярах.

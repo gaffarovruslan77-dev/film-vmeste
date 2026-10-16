@@ -146,7 +146,12 @@ ruff check . && mypy         # линтер и строгая проверка �
 docker compose up -d postgres redis
 TEST_DATABASE_URL=postgresql+asyncpg://kinomatch:kinomatch@localhost:5432/kinomatch_test \
 TEST_REDIS_URL=redis://localhost:6379/15 pytest -m integration
+python scripts/bot_e2e.py    # сквозная проверка бота: два виртуальных пользователя на поднятом стеке
 ```
+
+`scripts/bot_e2e.py` запускает настоящий код бота, но подменяет серверы Telegram заглушкой,
+которая запоминает все сообщения. Аня и Боря создают комнату, голосуют и получают «Совпадение!».
+Так бот проверяется целиком, без ручного тыканья в Telegram.
 
 ---
 

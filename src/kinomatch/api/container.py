@@ -13,7 +13,7 @@ from redis.asyncio import Redis
 from kinomatch.application.services import AuthService, RoomService, RoomSettings, UowFactory
 from kinomatch.catalog.wikidata import load as load_catalog
 from kinomatch.config import Settings
-from kinomatch.infrastructure.events import Event, RedisEventPublisher
+from kinomatch.infrastructure.events import Event, RedisEventPublisher, redis_client
 from kinomatch.infrastructure.memory import InMemoryStore, InMemoryUnitOfWork
 
 log = logging.getLogger(__name__)
@@ -43,7 +43,7 @@ def build_postgres_container(settings: Settings) -> Container:
     engine = create_engine(settings.database_url)
     factory = session_factory(engine)
     rooms, auth = _services(lambda: SqlUnitOfWork(factory), settings)
-    redis = Redis.from_url(settings.redis_url, decode_responses=True)
+    redis = redis_client(settings.redis_url)
 
     async def shutdown() -> None:
         await redis.aclose()
@@ -108,7 +108,5 @@ def build_memory_container(
 
 def build_container(settings: Settings) -> Container:
     if settings.storage == "memory":
-        return build_memory_container(
-            settings, redis=Redis.from_url(settings.redis_url, decode_responses=True)
-        )
+        return build_memory_container(settings, redis=redis_client(settings.redis_url))
     return build_postgres_container(settings)

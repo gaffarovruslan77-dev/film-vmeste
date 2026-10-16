@@ -15,9 +15,18 @@ from typing import Any
 from redis.asyncio import Redis
 
 EVENTS_STREAM = "kinomatch:events"
+# Блокирующие чтения (XREAD/XREADGROUP BLOCK) ждут новых событий до 15 с. В redis-py 8
+# таймаут сокета по умолчанию 5 с — без явной настройки каждое «пустое» ожидание
+# заканчивалось бы ошибкой TimeoutError. Поэтому таймаут задаём заведомо больше.
+MAX_BLOCK_MS = 15_000
+REDIS_SOCKET_TIMEOUT = 30
 EVENTS_MAXLEN = 100_000
 ROOM_STREAM_MAXLEN = 1_000
 ROOM_STREAM_TTL = 24 * 3600
+
+
+def redis_client(url: str) -> Redis:
+    return Redis.from_url(url, decode_responses=True, socket_timeout=REDIS_SOCKET_TIMEOUT)
 
 
 def room_stream(code: str) -> str:

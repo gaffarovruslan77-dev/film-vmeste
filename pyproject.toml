@@ -61,3 +61,7 @@ plugins = ["pydantic.mypy"]
 [[tool.mypy.overrides]]
 module = ["kinomatch.bot.*", "kinomatch.infrastructure.*", "kinomatch.api.*"]
 disallow_untyped_decorators = false
+
+[tool.ruff.lint.per-file-ignores]
+# FakeTelegram повторяет сигнатуру BaseSession.make_request из aiogram (параметр timeout)
+"scripts/bot_e2e.py" = ["ASYNC109"]
