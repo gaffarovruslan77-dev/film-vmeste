@@ -1,0 +1,66 @@
+x-app: &app
+  build: .
+  env_file:
+    - path: .env
+      required: false
+  environment:
+    DATABASE_URL: postgresql+asyncpg://kinomatch:kinomatch@postgres:5432/kinomatch
+    REDIS_URL: redis://redis:6379/0
+    API_URL: http://api:8000
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: kinomatch
+      POSTGRES_PASSWORD: kinomatch
+      POSTGRES_DB: kinomatch
+    ports: ["5432:5432"]
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kinomatch"]
+      interval: 2s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 2s
+      retries: 20
+
+  # Миграции + загрузка каталога (идемпотентно), затем контейнер завершается
+  migrate:
+    <<: *app
+    command: sh -c "alembic upgrade head && kinomatch seed"
+    depends_on:
+      postgres: { condition: service_healthy }
+
+  api:
+    <<: *app
+    command: kinomatch api
+    ports: ["8000:8000"]
+    restart: unless-stopped
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+      redis: { condition: service_healthy }
+
+  worker:
+    <<: *app
+    command: kinomatch worker
+    restart: unless-stopped
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+      redis: { condition: service_healthy }
+
+  bot:
+    <<: *app
+    command: kinomatch bot
+    restart: on-failure:5
+    depends_on:
+      api: { condition: service_started }
+      redis: { condition: service_healthy }
+
+volumes:
+  pgdata:
