@@ -1,5 +1,7 @@
 # 🍿 Фильм вместе
 
+[![CI](https://github.com/gaffarovruslan77-dev/film-vmeste/actions/workflows/ci.yml/badge.svg)](https://github.com/gaffarovruslan77-dev/film-vmeste/actions/workflows/ci.yml)
+
 **Групповой выбор фильма свайпами.** Концепт фичи для Кинопоиска.
 
 Компания друзей или пара не может договориться, что посмотреть. Создаём комнату, все листают
